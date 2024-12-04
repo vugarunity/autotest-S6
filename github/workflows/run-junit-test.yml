@@ -1,6 +1,10 @@
 name: Demo project CI
 run-name: ${{ github.actor }} is testing CI GitHub Actions 🚀
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - lesson6
 jobs:
   run-tests:
     runs-on: ubuntu-latest
