@@ -1,0 +1,45 @@
+name: Demo project CI
+run-name: ${{ github.actor }} is testing CI GitHub Actions 🚀
+
+on:
+  push:
+    branches:
+      - lesson6
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn --batch-mode --update-snapshots package
+
+      - name: Run JUnit tests
+        run: mvn test
+
+
+      - name: Install Allure Commandline
+        run: |
+          curl -o allure-2.18.1.zip -L https://github.com/allure-framework/allure2/releases/download/2.18.1/allure-2.18.1.zip
+          unzip allure-2.18.1.zip -d allure
+          export PATH=$PATH:$PWD/allure/bin
+
+      # Запуск отчета Allure
+      - name: Run Allure report
+        run: allure serve allure-results
+
+      - name: Echo job status
+        run: echo "🍏 This job's status is ${{ job.status }}."
