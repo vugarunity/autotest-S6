@@ -12,10 +12,17 @@
     <junit.version>5.9.1</junit.version><!-- Обновленная версия JUnit -->
     <assured.version>5.3.0</assured.version>
     <jackson.version>2.15.2</jackson.version>
+    <surefire-report.version>2.22.2</surefire-report.version>
     <surefire.version>2.22.2</surefire.version>
+    <aspectj.version>1.8.10</aspectj.version>
+    <allure.junit.version>2.22.1</allure.junit.version>
   </properties>
 
   <repositories>
+    <repository>
+      <id>allure</id>
+      <url>https://repository.qameta.io</url>
+    </repository>
     <repository>
       <id>central</id>
       <url>https://repo.maven.apache.org/maven2</url>
@@ -44,6 +51,7 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
+
     <!-- Лекция 3. Rest Assured -->
     <dependency>
       <groupId>io.rest-assured</groupId>
@@ -51,6 +59,7 @@
       <version>${assured.version}</version>
       <scope>test</scope>
     </dependency>
+
     <!-- Лекция 3. Jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -69,6 +78,14 @@
       <version>3.24.0</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Лекция 6. Allure -->
+    <dependency>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-junit5</artifactId>
+      <version>${allure.junit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -84,31 +101,70 @@
         </configuration>
       </plugin>
 
-      <!-- Плагин Checkstyle -->
+      <!-- Плагин для запуска тестов Maven -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.0.0</version> <!-- Версия плагина, актуальная на момент написания -->
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.21.0</version>
+        <configuration>
+          <testFailureIgnore>false</testFailureIgnore>
+          <argLine>
+            -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+          </argLine>
+          <argLine>-Xmx2048m</argLine> <!-- Увеличение размера кучи для JVM -->
+          <forkCount>1</forkCount> <!-- Один процесс для тестов -->
+          <reuseForks>true</reuseForks>
+          <systemProperties>
+            <property>
+              <name>junit.jupiter.extensions.autodetection.enabled</name>
+              <value>true</value>
+            </property>
+          </systemProperties>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-surefire-provider</artifactId>
+            <version>1.2.0</version>
+          </dependency>
+          <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <!-- Плагин Allure для Maven -->
+      <plugin>
+        <groupId>io.qameta.allure</groupId>
+        <artifactId>allure-maven</artifactId>
+        <version>2.12.0</version>
+        <configuration>
+          <resultsDirectory>${project.basedir}/allure-results</resultsDirectory>
+        </configuration>
         <executions>
           <execution>
-            <phase>validate</phase> <!-- Запуск во время фазы validate -->
+            <phase>verify</phase>
             <goals>
-              <goal>check</goal> <!-- Запуск проверки -->
+              <goal>serve</goal>
             </goals>
-            <configuration>
-              <!-- Путь к вашему checkstyle.xml -->
-              <configLocation>checkstyle.xml</configLocation>
-              <consoleOutput>true</consoleOutput> <!-- Вывод результатов в консоль -->
-              <failsOnError>true</failsOnError> <!-- Ошибка, если найдены нарушения -->
-            </configuration>
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${surefire.version}</version>
-      </plugin>
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${surefire-report.version}</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
 </project>
+
+
+
